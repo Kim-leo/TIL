@@ -56,4 +56,50 @@ class 인스턴스(위에서는 starbucks)가 생성되면 메모리에 적재�
 
 > 연산 프로퍼티(Computed Property): 값을 설정하거나 호출하는 시점에서 로직이 실행되는 값
 
+Cafe class 에서 summary라는 연산 프로퍼티를 새로 생성했다. 연산 프로퍼티는 get(암묵적으로 생성, 생략 가능)과 set(명시적으로 생성)을 생성한다. 코드 맨 아래와 같이 연산 프로퍼티를 set으로 설정 후, get으로 값을 가져올 수 있다.
 
+```swift
+class Cafe {
+    var location: String
+    var famousMenu: String
+    var reviewScore: Float
+
+    var summary: String {
+        get {
+            return "\(location), \(famousMenu), \(reviewScore)"
+        }
+        set(newValue) {
+            let components = newValue.split(separator: ", ")
+            if components.count >= 3 {
+                location = String(components[0])
+                famousMenu = String(components[1])
+                reviewScore = Float(components[2]) ?? reviewScore
+            }
+        }
+    }
+    
+    init(location: String, famousMenu: String, reviewScore: Float) {
+        self.location = location
+        self.famousMenu = famousMenu
+        self.reviewScore = reviewScore
+    }
+    
+    deinit {
+        print("deleted from Memory.")
+    }
+    
+    func cafeInfo() {
+        print("Location: \(location) \n"
+        + "Famous menu: \(famousMenu) \n"
+        + "Review Score: \(reviewScore)")
+    }
+}
+
+let starbucks = Cafe(location: "Seoul", famousMenu: "Ice americano", reviewScore: 4.7)
+print(starbucks.summary)    
+// Seoul, Ice americano, 4.7
+
+starbucks.summary = "Busan, Green Tea, 4.7"
+print(starbucks.summary)
+// Busan, Green Tea, 4.7
+```
