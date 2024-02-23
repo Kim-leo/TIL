@@ -1,6 +1,6 @@
 class
 ====
-class 선언하는 방법
+1. class 선언하는 방법
 ----
 ```swift
 class 클래스 이름: 부모 클래스 {
