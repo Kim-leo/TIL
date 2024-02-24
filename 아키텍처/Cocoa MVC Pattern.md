@@ -1,4 +1,4 @@
-# MVC(Model - View - Controller) 소프트웨어 디자인 패턴
+# Cocoa MVC(Model - View - Controller) 소프트웨어 디자인 패턴
 
 ### 01. Model - View - Controller
 MVC는 User Interface로부터 로직을 분리하여 App의 시각적 요소나 백그라운드에서 실행되는 로직을 서로 영향 없이 쉽게 관리가능한 패턴이다. MVC에서 Model, View, Controller는 다음과 같다.
