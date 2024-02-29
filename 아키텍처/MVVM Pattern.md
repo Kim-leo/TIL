@@ -15,6 +15,7 @@ Controller가 두 패턴 모두에 존재하는 반면, MVVM에서는 Controller
 
 ### 02. 각 개체가 상호작용하는 방법
 <img width="529" alt="스크린샷 2024-02-24 오후 11 19 58" src="https://github.com/Kim-leo/TIL/assets/77371366/55bc86c7-e80a-4f75-b923-bd47b9a77484">
+
 1. 사용자가 View 내의 UIComponents 입력 또는 터치 등의 Event 발생
 2. View는 해당 Event를 View Model에게 전달
 3. 변경된 Data를 통해 Model을 업데이트
