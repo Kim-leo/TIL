@@ -145,3 +145,94 @@ Optional("Brian")
 사실 구현에는 몇 가지 단점이 있다. __큐의 앞쪽에서 요소를 제거하면 모든 요소가 하나씩 이동하므로 비효율적일 수 있다.__ 이는 큐의 크기가 커질수록 심해지기도 한다. 
 
 __또한 배열이 가득 찼을 때 크기를 조정해야 하는데 그로 인해 사용하지 않은 공간이 메모리 상에서 낭비될 수 있기도 하다.__ 그러면 당연히 메모리 사용량이 증가할 수 있다. 
+
+# 이중 연결리스트 기반 큐 연산
+이중 연결리스트(Doubly linked list)는 노드가 이전 노드와 다음 노드를 동시에 참조하는 연결리스트이다. 
+
+코드 맨 마지막에 아래와 같이 이중 연결리스트로 만든 큐 제작 코드를 입력한다.
+```swift
+public class QueueLinkedList<T>" Queue: {
+    private var list = DoublyLinkedList<T>()
+    public init() {}
+}
+```
+이는 <code>QueueArray</code>와 비슷해보이지만 배열 대신에 이중 연결리스트로 만들었다.
+
+### Enqueue
+큐의 맨 마지막에 값을 추가하기 위한 코드를 위 코드 안에 입력한다.
+```swift
+public func enqueue(_ element: T) -> Bool {
+    list.append(element)
+    return true
+}
+```
+
+![스크린샷 2024-03-08 오전 11 21 16](https://github.com/Kim-leo/TIL/assets/77371366/62edc255-732f-45f5-9a64-d631e92429d6)
+
+큐에 값을 추가하면, tail 노드의 이전 값과 새로운 노드에 대한 다음 참조를 업데이트 할 것이다. 이 연산은 시간 복잡도가 __O(1)__ 이다.
+
+### Dequeue
+큐의 맨 처음 값을 제거하기 위한 코드는 다음과 같다.
+```swift
+public func dequeue() -> T? {
+    guard !list.isEmpty, let element = list.first else {
+        return nil
+    }
+    return list.remove(element)
+}
+```
+
+리스트가 비어있지는 않은지와 첫 번째 요소가 큐에 존재하는지 먼저 확인한다. 그렇지 않다면 <code>nil</code>을 반환한다. 만약 리스트가 비어있지 않고, 첫 번째 요소가 있다면 그 값을 제거하고 큐의 첫 번째 요소를 반환한다. 이 연산 또한 시간 복잡도가 __O(1)__ 이다.
+
+![스크린샷 2024-03-08 오전 11 25 34](https://github.com/Kim-leo/TIL/assets/77371366/93dbfd31-0b06-409d-bbe5-228847488a99)
+
+배열 기반 큐 연산과 달리, 첫 번째 값을 제거할 때 모든 요소를 한 칸씩 이동하지 않아도 되지만, 연결 리스트 내의 첫 번째 노드와 그 다음 노드 간의 next 노드와 previous 노드를 업데이트 해야 한다.
+
+### 큐의 상태 확인하기
+배열 기반 큐와 마찬가지로 리스트의 첫 번째 값을 반환하거나 리스트가 비어있는지 확인하는 메소드를 추가할 수 있다. 
+```swift
+public var peek: T? {
+    list.first?.value
+}
+
+public var isEmpty: Bool {
+    list.isEmpty
+}
+```
+### Debug and test
+디버깅을 위해 아래와 같이 코드를 추가한다.
+```swift
+extension QueueLinkedList: CustomStringConvertible {
+    public var description: String {
+        string(describing: list)
+    }
+}
+
+var queue = QueueLinkedList<String>()
+queue.enqueue("Ray")
+queue.enqueue("Brian")
+queue.enqueue("Eric")
+print(queue)
+queue.dequeue()
+print(queue)
+print(queue.peek)
+/* 출력값
+["Ray", "Brian", "Eric"]
+["Brian", "Eric"]
+Optional("Brian")
+*/
+```
+
+### 이중 연결리스트 기반 큐의 장단점
+|연산|Average case|Worst case|
+|:---:|:---:|:---:|
+|enqueue|O(1)|O(1)|
+|dequeue|O(1)|O(1)|
+|Space Complexity|O(n)|O(n)|
+
+배열 기반 큐의 주요 문제는 <code>dequeue</code> 연산의 시간 복잡도가 __O(n)__ 으로 선형 시간이 걸리는 것이다. 반면에, 이중 연결리스트 기반 큐는 상수 시간의 __O(1)__ 을 가지는데, 그 이유는 노드의 이전 포인터와 다음 포인터만 업데이트만 해주면 되기 때문이다.
+
+한편, 이중 연결리스트 기반 큐의 아쉬운 점은 O(1) 시간 복잡도에도 불구하고, 오버헤드가 높다는 것이다. __각각의 요소는 그 요소 앞, 뒤로 참조를 가지고 이에 따라 여분의 메모리가 필요하다. 게다가, 새로운 요소를 생성할 때마다 상대적으로 시간이 많이 드는 동적 할당이 필요하다.__ 배열 기반의 큐는 할당이 더 빠르고 대용량으로 처리할 수 있다.
+
+할당 오버헤드를 제거한 채, O(1)의 시간 복잡도를 유지할 수 있을까? 고정된 크기를 넘어서 큐에 값을 추가하고 싶다면, __(링 버퍼)Ring buffer__ 라는 다른 방법을 사용해야 한다. 링 버퍼는 아래에서 더 자세히 다룬다.
+
