@@ -351,3 +351,4 @@ Optional("Brian")
 |dequeue|O(1)|O(1)|
 |Space Complexity|O(n)|O(n)|
 
+링 버퍼 기반 큐는 <code>enqueue</code> 와 <code>dequeue</code> 연산의 시간 복잡도가 __O(1)__ 이다. 유일한 차이점은 공간 복잡도(Space complexity)인데, __링 버퍼는 크기가 고정이므로  <code>enqueue</code> 가 실패할 수도 있다.__ 
