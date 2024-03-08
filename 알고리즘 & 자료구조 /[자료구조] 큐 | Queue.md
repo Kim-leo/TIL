@@ -236,3 +236,118 @@ Optional("Brian")
 
 할당 오버헤드를 제거한 채, O(1)의 시간 복잡도를 유지할 수 있을까? 고정된 크기를 넘어서 큐에 값을 추가하고 싶다면, __(링 버퍼)Ring buffer__ 라는 다른 방법을 사용해야 한다. 링 버퍼는 아래에서 더 자세히 다룬다.
 
+# 링 버퍼(Ring buffer) 기반 큐 연산
+링 버퍼는 원형 버퍼(Circular buffer)라고도 하며, 크기가 고정된 배열이다. 이 자료구조는 마지막에 제거해야 할 요소가 더 이상 없으며 다시 처음으로 이어진다.
+
+링 버퍼 기반 큐의 동작 방법을 아래와 같이 살펴본다.
+
+![스크린샷 2024-03-08 오전 11 44 01](https://github.com/Kim-leo/TIL/assets/77371366/7024f6e0-ffee-4c62-95e2-043682b71f8d)
+
+위 그림에서와 같이 크기가 4인 링 버퍼를 생성한다. 링 버퍼는 __read__ 와 __write__ 를 계속 수행해야 하는 2개의 포인터가 존재한다.
+
+- __read__ 포인터: 큐의 맨 처음 부분을 추적.
+- __write__ 포인터: 이미 읽은(read) 기존 요소를 재정의할 수 있도록 다음에 사용할 수 있는 위치를 추적.
+
+![스크린샷 2024-03-08 오전 11 48 03](https://github.com/Kim-leo/TIL/assets/77371366/0fdc251f-44a1-459f-abe9-bc7ef4e75aff)
+
+![스크린샷 2024-03-08 오전 11 48 12](https://github.com/Kim-leo/TIL/assets/77371366/05686979-a633-43bb-993a-26d6c5cc8c8b)
+
+위 그림에서와 같이 새로운 요소를 추가할 때마다, __write__ 포인터가 1씩 증가한다. 그리고 __read__ 포인터가 __write__ 포인터 앞에 있는데 이는 큐가 비어 있지 않다는 것을 말하기도 한다.
+
+이제 두 요소를 제거한다. (큐에서 값을 제거하면, 앞에서부터 'Chris'와 'Lattner'가 제거된다.)
+
+![스크린샷 2024-03-08 오전 11 50 30](https://github.com/Kim-leo/TIL/assets/77371366/e09f3e01-0f18-433d-bc65-ef2e86123bf9)
+
+![스크린샷 2024-03-08 오전 11 50 42](https://github.com/Kim-leo/TIL/assets/77371366/ada96fa4-57f2-43e7-ae1d-90141dd76d84)
+
+2개의 값을 제거하니, __read__ 포인터가 큐의 맨 처음 부분인 'Swift' 로 이동했다.
+
+이 상태에서 1개의 값을 더 추가한다면 아래와 같을 것이다.
+
+![스크린샷 2024-03-08 오전 11 53 12](https://github.com/Kim-leo/TIL/assets/77371366/df7c80dd-18dd-48ce-bbc3-355a6dd05bfb)
+
+__write__ 포인터가 끝에 도달했기 때문에 다시 처음 인덱스 부분으로 돌아갔다. 큐의 마지막 부분에 다다르면 다시 처음으로 돌아가서 값을 추적하기 때문에 선형 버퍼(Circular buffer)라고 불리우는 것이다.
+
+마지막으로 2개의 값을 제거한다면 아래와 같을 것이다.
+
+![스크린샷 2024-03-08 오전 11 54 38](https://github.com/Kim-leo/TIL/assets/77371366/9e9c4c64-4696-4feb-b638-8a94675bdbf8)
+
+__read__ 포인터 또한 다시 처음으로 돌아왔다.
+
+마지막 그림에서 알 수 있듯이, __read__ 포인터와 __write__ 포인터가 같은 인덱스에 있다면 그 큐는 비어있는 상태이다.
+
+이제, 링 버퍼 기반 큐를 코드로 만들어본다.
+```swift
+public struct QueueRingBuffer<T>: Queue {
+    private var ringBuffer: RingBuffer<T>
+
+    public init(count: Int) {
+        ringBuffer = RingBuffer<T>(count: count)
+    }
+
+    public var isEmpty: Bool {
+        ringBuffer.isEmpty
+    }
+
+    public var peek: T? {
+        ringBuffer.first
+    }
+}
+```
+링 버퍼 기반 큐는 고정된 크기이므로, <code>count</code> 파라미터를 반드시 포함해야 한다.
+
+<code>Queue protocol</code> 을 채택하였으므로 <code>isEmpty</code> 와 <code>peek</code> 메소드를 구현해야 하는데, 이 두 메소드의 시간 복잡도는 __O(1)__ 이다.
+
+### Enqueue
+값을 추가하기 위한 코드를 아래와 같이 작성한다.
+```swift
+public mutating func enqueue(_ element: T) -> Bool {
+    ringBuffer.write(element)
+}
+```
+
+값을 추가하기 위한 코드로 <code>write(_:)</code>를 작성했는데 이는 __write__ 포인터를 한 칸씩 증가시킨다.
+
+큐의 크기가 고정이므로, 요소가 성공적으로 추가되었는지 아닌지에 따라 <code>true</code> 또는 <code>false</code> 를 반환한다. 이 연산은 __O(1)__ 의 시간 복잡도를 가진다.
+
+### Dequeue
+값을 제거하기 위한 코드는 아래와 같다.
+```swift
+public mutating func dequeue() -> T? {
+    ringBuffer.read()
+}
+```
+
+큐의 맨 처음부분의 값을 제거하기 위해서 <code>read()</code>를 선언한다. 만약 큐가 비어있으면 <code>nil</code>를 반환하고, 비어있지 않다면 큐의 맨 처음 값을 가져와 반환하고, __read__ 포인터를 한 칸씩 증가한다.
+
+### Debug and test
+디버깅을 위해 아래와 같이 코드를 추가한다.
+```swift
+extension QueueRingBuffer: CustomStringConvertible {
+    public var description: String {
+        string(describing: QueueRingBuffer)
+    }
+}
+
+var queue = QueueRingBuffer<String>(count: 10)
+queue.enqueue("Ray")
+queue.enqueue("Brian")
+queue.enqueue("Eric")
+print(queue)
+queue.dequeue()
+print(queue)
+print(queue.peek)
+/* 출력값
+["Ray", "Brian", "Eric"]
+["Brian", "Eric"]
+Optional("Brian")
+*/
+```
+
+### 링 버퍼 기반 큐의 장단점
+|연산|Average case|Worst case|
+|:---:|:---:|:---:|
+|enqueue|O(1)|O(1)|
+|dequeue|O(1)|O(1)|
+|Space Complexity|O(n)|O(n)|
+
