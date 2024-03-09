@@ -352,3 +352,27 @@ Optional("Brian")
 |Space Complexity|O(n)|O(n)|
 
 링 버퍼 기반 큐는 <code>enqueue</code> 와 <code>dequeue</code> 연산의 시간 복잡도가 __O(1)__ 이다. 유일한 차이점은 공간 복잡도(Space complexity)인데, __링 버퍼는 크기가 고정이므로  <code>enqueue</code> 가 실패할 수도 있다.__ 
+
+# 더블 스택 기반 큐
+큐를 생성하는 4가지 방법 중 마지막은 더블 스택(Double-stack)을 이용하는 것이다. 바로 아래 코드와 같이 더블 스택 기반 큐를 생성한다.
+```swift
+public struct QueueStack<T>: Queue {
+    private var leftStack: [T] = []
+    private var rightStack: [T] = []
+    private init() { }
+}
+```
+더블 스택 즉, 스택(Stack) 두 개를 사용하는 아이디어 자체는 굉장히 단순하다. 
+
+요소를 삽입할 때에는 <code>right Stack</code> 에 쌓이고, 요소를 제거할 때에는 <code>right Stack</code> 에 쌓인 요소를 reverse 한 후에, <code>left Stack</code> 에 옮김으로써 __FIFO__ 순서를 충족하게 만든다.
+
+<img width="532" alt="스크린샷 2024-03-09 오후 2 44 21" src="https://github.com/Kim-leo/TIL/assets/77371366/91299717-4283-45de-ae78-b7007ae62dd1">
+
+### Queue Protocol 메소드
+```swift
+public var isEmpty: Bool {
+    leftStack.isEmpty && rightStack.isEmpty
+}
+```
+
+큐가 비어있는지 확인하기 위해서는 왼쪽 스택과 오른쪽 스택이 모두 비어있는지 확인해야 한다. 이는 즉, 왼쪽 스택에 값을 제거할 것도, 오른쪽 스택에 값을 추가할 것도 없는 상태를 말한다.
