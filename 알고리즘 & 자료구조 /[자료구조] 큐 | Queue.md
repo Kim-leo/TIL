@@ -376,3 +376,43 @@ public var isEmpty: Bool {
 ```
 
 큐가 비어있는지 확인하기 위해서는 왼쪽 스택과 오른쪽 스택이 모두 비어있는지 확인해야 한다. 이는 즉, 왼쪽 스택에 값을 제거할 것도, 오른쪽 스택에 값을 추가할 것도 없는 상태를 말한다.
+
+그 다음은 요소의 맨 앞을 반환하는 메서드이다.
+```swift
+public var peek: T? {
+    !leftStack.isEmpty ? leftStack.last : rightStack.first
+}
+```
+
+왼쪽 스택이 비어있지 않으면 왼쪽 스택의 마지막 값 즉, 큐의 맨 처음 값을 반환한다. 만약 왼쪽 스택이 비어있다면, 오른쪽 스택이 reverse되고 왼쪽 스택에 옮겨진다. 이 경우, 오른쪽 스택의 맨 밑 부분이 큐의 다음 차례이다. 
+
+<code>isEmpty</code> 와 <code>peek</code> 메소드는 시간 복잡도가 __O(1)__ 이다.
+
+### Enqueue
+```swift
+public mutating func enqueue(_ element: T) -> Bool {
+    rightStack.append(element)
+    return true
+}
+```
+
+오른쪽 스택에는 값을 추가한다. 단순히 배열에 값을 <code>append</code> 하듯이 스택에 <code>push</code> 하는 것이다. 배열 기반 큐에서와 같이 값을 새로 추가하는 것의 시간 복잡도는 __O(1)__ 이다.
+
+<img width="375" alt="스크린샷 2024-03-09 오후 2 56 05" src="https://github.com/Kim-leo/TIL/assets/77371366/425e1bea-6786-41d6-83b7-d10e187ac1e9">
+
+### Dequeue
+```swift
+public mutating func dequeue() -> T? {
+    if leftStack.isEmpty {
+        leftStack = rightStack.reversed()
+        rightStack.removeAll()
+    }
+    return leftStack.popLast()
+}
+```
+더블 스택 기반 큐에서 값을 제거하는 것은 약간 까다로울 수도 있는데, 
+
+일단 왼쪽 스택이 비어있는지 확인하고, 비어있다면 오른쪽 스택을 reverse하여 왼쪽 스택에 설정한다.
+이후 오른쪽 스택의 값을 모두 제거하고, 왼쪽 스택의 마지막 요소를 제거하면 된다.
+
+<img width="488" alt="스크린샷 2024-03-09 오후 2 58 58" src="https://github.com/Kim-leo/TIL/assets/77371366/c08351c9-a755-4d78-85f7-015c35ebfa05">
