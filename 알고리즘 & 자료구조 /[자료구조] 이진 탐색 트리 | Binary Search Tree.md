@@ -67,4 +67,107 @@
 
 이진 탐색 트리는 추가, 제거 및 조회 작업의 단계 수를 크게 줄인다. 이진 탐색 트리를 사용하는 것의 이점을 이해했으니, 실제 구현으로 넘어갈 수 있다.
 
+### 코드로 구현하기
+이진 탐색 트리를 직접 코드로 만들어 본다.
+```swift
+public struct BinarySearchTree<Elemenet: Comparable> {
+    public private(set) var root: BinaryNode<Elemenet>?
+    
+    public init() {}
+}
 
+extension BinarySearchTree: CustomStringConvertible {
+    public var description: String {
+        guard let root = root else { return "Empty tree" }
+        return String(describing: root)
+    }
+}
+```
+
+### 삽입 연산 | Inserting elements
+이진 탐색 트리(BST)의 규칙에 따라 왼쪽 자식 노드는 현재 노드보다 작은 값을 포함해야 한다. 오른쪽 자식 노드는 현재 노드보다 크거나 같은 값을 포함해야한다. 이러한 규칙을 따르는 <code>insert</code> 연산을 만들어 본다.
+```swift
+extension BinarySearchTree {
+    public mutating func insert(_ value: Elemenet) {
+        root = insert(from: root, value: value)
+    }
+    
+    private func insert(from node: BinaryNode<Elemenet>?, value: Elemenet) -> BinaryNode<Elemenet> {
+        // 1번
+        guard let node = node else {
+            return BinaryNode(value: value)
+        }
+        // 2번
+        if value < node.value {
+            node.leftChild = insert(from: node.leftChild, value: value)
+        } else {
+            node.rightChild = insert(from: node.rightChild, value: value)
+        }
+        // 3번
+        return node
+    }
+}
+```
+
+첫 번째 <code>insert</code> 연산은 사용자에게 보여지고, 두 번째 <code>insert</code> 연산은 private helper 메서드에 사용된다.
+
+- 1번: 위 메서드는 재귀적 방법을 사용했으므로 재귀를 종료하려면 기본 케이스가 필요하다. 만약 현재 노드기 <code>nil</code>이라면 삽입 포인트를 찾아서 새로운 <code>BinaryNode</code>를 반환한다.
+- 2번: <code>Element</code> 타입이 <code>Comparable</code>하기 때문에, 비교를 수행할 수 있다. <code>if</code>문은 다음 <code>insert</code>연산이 어디로 순회되어야 하는지 제어한다. 만약 새 값이 현재 값보다 작다면 <code>insert</code>은 왼쪽 자식으로 진행되고, 새 값이 현재 값보다 크거나 같다면 <code>insert</code>을 오른쪽 자식으로 진행하면 된다.
+- 3번: 현재 노드를 반환한다. <code>insert</code> 연산이 <code>node (if it was nil)</code>을 만들거나, <code>node(if it was not nil)</code>을 반환하기 때문에 <code>node = insert(from: node, value: value)</code> 형식에 할당이 가능하다.
+
+이제 실제로 값을 삽입해보자.
+```swift
+print("Example of building a BST")
+var bst = BinarySearchTree<Int>()
+for i in 0..<5 {
+    bst.insert(i)
+}
+print(bst)
+/* 결과값
+Example of building a BST
+   ┌──4 
+  ┌──3
+  │ └──nil 
+ ┌──2
+ │ └──nil 
+┌──1
+│ └──nil 
+0
+└──nil 
+
+*/
+```
+위의 트리는 약간 불균형이지만 규칙을 따르긴 한다. 하지만, 이 트리 배치는 바람직하지 못한 결과를 초래한다. 트리를 작업할 때 항상 균형있는 포맷으로 만들어야 한다.
+
+![스크린샷 2024-03-15 오후 1 11 40](https://github.com/Kim-leo/TIL/assets/77371366/0d08686f-643c-4f5a-8df0-51a492852fcf)
+
+불균형적인 트리는 성능에 영향을 끼치는데, 5라는 값을 새로 삽입한다고 하면, __O(n)__ 시간 복잡도를 가지게 된다.
+
+![스크린샷 2024-03-15 오후 1 12 31](https://github.com/Kim-leo/TIL/assets/77371366/267337c3-d602-4ebd-90e8-baad658af88c)
+
+균형 잡힌 구조를 유지하기 위해 다른 기술을 사용하는 셀프 밸런싱 트리로 알려진 구조를 만들 수 있지만, 이러한 세부 사항은 "AVL 트리"에서 알아본다. 지금은 불균형이 발생하지 않도록 약간의 주의를 기울여 샘플 트리를 만들 것이다.
+```swift
+var exampleTree: BinarySearchTree<Int> {
+    var bst = BinarySearchTree<Int>()
+    bst.insert(3)
+    bst.insert(1)
+    bst.insert(4)
+    bst.insert(0)
+    bst.insert(2)
+    bst.insert(5)
+    return bst
+}
+
+print("Example of building a BST")
+print(exampleTree)
+/* 결과값
+Example of building a BST
+ ┌──5 
+┌──4
+│ └──nil 
+3
+│ ┌──2 
+└──1
+ └──0 
+*/
+```
