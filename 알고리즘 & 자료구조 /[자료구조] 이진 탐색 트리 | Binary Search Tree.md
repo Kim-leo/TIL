@@ -171,3 +171,180 @@ Example of building a BST
  └──0 
 */
 ```
+### 탐색 연산 | Finding elements
+이진 탐색 트리에서 요소를 찾으려면 해당 노드를 방문해야 한다. 이전 장에서 배운 기존의 순회 메서드를 사용하면 비교적 간단한 구현을 할 수 있다.
+```swift
+extension BinarySearchTree {
+    public func contains(_ value: Element) -> Bool {
+        guard let root = root else {
+            return false
+        }
+        var found = false
+        root.traverseInOrder {
+            if $0 == value {
+                found = true
+            }
+        }
+        return found
+    }
+}
+
+print("example of finding a node")
+if exampleTree.contains(5) {
+    print("Found 5!")
+} else {
+    print("Couldn’t find 5")
+}
+/* 결과값
+example of finding a node
+Found 5!
+*/
+```
+
+중위 순회(In-roder traversal) 알고리즘은 시간 복잡도가 __O(n)__ 이므로 <code>contains</code> 연산은 정렬되지 않은 배열을 통한 전체 검색에 대하여 같은 시간 복잡도를 가진다. 하지만, 이래와 같이 최적화를 할 수 있다.
+
+이진 탐색 트리의 규칙을 지키면서 불필요햔 비교 연산을 피할 수 있다.
+
+```swift
+public func contains(_ value: Element) -> Bool {
+    // 1 번
+    var current = root
+    // 2 번
+    while let node = current {
+        // 3 번
+        if node.value == value {
+            return true
+        }
+        // 4 번
+        if value < node.value {
+            current = node.leftChild
+        } else {
+            current = node.rightChild
+        }
+    }
+    return false
+}
+```
+- 1번: <code>current</code> 변수를 루트 노드로 설정.
+- 2번: <code>current</code> 가 <code>nil</code> 이 아닐 때까지, 현재 노드의 값을 확인.
+- 3번: 그 값을 찾았다면, <code>true</code> 를 반환.
+- 4번: 그렇지 않다면, 왼쪽 또는 오른쪽 자식으로 갈지 결정.
+
+바로 위의 <code>contains</code> 연산은 군형적 이진 탐색 트리에서 __O(log n)__ 의 시간 복잡도를 가진다.
+
+### 제거 연산 | Removing elements
+제거 연산은 살짝 더 까다롭다. 케이스 별로 나뉘는데 아래 케이스들을 살펴보자.
+
+### Case 1: 리프 노드
+리프 노드를 제거하는 것은 직관적이다. 리프 노드를 떼내면 끝이다.
+
+![스크린샷 2024-03-20 오후 4 32 17](https://github.com/Kim-leo/TIL/assets/77371366/5b0285f1-40c1-4928-89dc-44b0beec41f5)
+
+하지만, 리프 노드가 아닌 것을 제거하려면 몇 가지 단계가 필요하다.
+
+### Case 2: 하나의 자식만 가진 노드
+하나의 자식만 가진 노드를 제거할 때에는 트리의 나머지 부분에 그 하나의 자식을 재연결 해야 한다.
+
+![스크린샷 2024-03-20 오후 4 33 32](https://github.com/Kim-leo/TIL/assets/77371366/2cbe8dd8-9546-43b7-bcf3-58a68b4f8ab8)
+
+### Case 3: 두 개의 자식을 가진 노드
+두 개의 자식을 가진 노드들은 더 복잡한데, 아래 그림처럼 25 값을 제거하는 것을 예시로 보자.
+
+![스크린샷 2024-03-20 오후 4 34 47](https://github.com/Kim-leo/TIL/assets/77371366/61f3a0d5-92f8-4e5e-85cb-7cca59e7f16c)
+
+단순히 그 값을 제거만 한다면 아래와 같이 딜레마에 빠진다.
+
+![스크린샷 2024-03-20 오후 4 35 19](https://github.com/Kim-leo/TIL/assets/77371366/2baa7a55-6e27-4375-97be-8d49083af993)
+
+25 값의 자식들인 12와 37을 재연결해야 하는데, 부모 노드에게는 하나의 자식만 들어갈 수 있는 공간 밖에 없다. 이를 해결하기 위해서 <code>swap</code> 을 수행함으로써 해결한다.
+
+두 개의 자식을 가진 노드를 제거할 때에는, 오른쪽 자식 서브트리의 가장 작은 값을 가져와 대체한다. 이진 탐색 트리 규칙에 근거하여, 이는 오른쪽 자식 서브 트리의 최좌측의 값이다.
+
+![스크린샷 2024-03-20 오후 4 38 15](https://github.com/Kim-leo/TIL/assets/77371366/7ae991a0-b666-4bca-9455-511074446fba)
+
+이를 통해 유효한 이진 탐색 트리가 되는지 확인해야 한다. 새 노드가 오른쪽 서브 트리에서 가장 작은 값이므로, 오른쪽 서브 트리는 여전히 새 노드보다 크거나 같을 것이다. 그리고, 새 노드가 오른쪽 서브 트리에서 나왔으므로 왼쪽 서브 트리의 모든 노드는 새 노드보다 작을 것이다.
+
+<code>swap</code> 을 한 뒤, 그 값을 제거한다.
+
+![스크린샷 2024-03-20 오후 4 40 29](https://github.com/Kim-leo/TIL/assets/77371366/e488ebbe-38bc-414b-8dae-0a1c07ea3b08)
+
+이를 코드로 구현해보자.
+```swift
+private extension BinaryNode {
+    var min: BinaryNode {
+        leftChild?.min ?? self
+    }
+}
+extension BinarySearchTree {
+    public mutating func remove(_ value: Element) {
+        root = remove(node: root, value: value)
+    }
+    private func remove(node: BinaryNode<Element>?, value: Element) -> BinaryNode<Element>? {
+        guard let node = node else {
+            return nil
+        }
+        if value == node.value {
+            // 1 번
+            if node.leftChild == nil && node.rightChild == nil {
+            return nil
+            }
+            // 2 번
+            if node.leftChild == nil {
+              return node.rightChild
+            }
+            // 3 번
+            if node.rightChild == nil {
+              return node.leftChild
+            }
+            // 4 번
+            node.value = node.rightChild!.min.value
+            node.rightChild = remove(node: node.rightChild, value:
+            node.value)
+        } else if value < node.value {
+              node.leftChild = remove(node: node.leftChild, value: value)
+        } else {
+              node.rightChild = remove(node: node.rightChild, value: value)
+        }
+        return node
+    }
+}
+```
+
+이 방법은 값을 삽입할 때와 동일한 재귀적 설정을 <code>private helpter method</code>로 사용한다. 또한 <code>BinaryNode</code>에 재귀적 최소 속성을 추가하여 하위 트리의 최소 노드를 찾는다. 다른 제거 케이스들은 <code>if value == node.value</code> 절에서 처리된다.
+
+- 1번: 노드가 리프 노드이면, <code>nil</code>을 반환한다. 그러면 현재 노드를 제거하게 된다.
+- 2번: 노드가 왼쪽 자식이 없으면 오른쪽 서브 트리와 재연결하기 위해서 <code>node.rightChild</code>를 반환한다.
+- 3번: 노드가 오른쪽 자식이 없으면 왼쪽 서브 트리와 재연결하기 위해서 <code>node.leftChild</code>를 반환한다.
+- 4번: 제거될 노드가 왼쪽, 오른쪽 자식이 둘 다 있는 경우이다. 오른쪽 서브 트리에서 가장 작은 값으로 변경하고 그 변경된 원래 노드를 제거한다.
+
+직접 노드를 제거해보자.
+```swift
+print(example of removing a node")
+var tree = exampleTree
+print("Tree before removal: ")
+print(tree)
+tree.remove(3)
+print("Tree after removal: ")
+print(tree)
+/* 결과값
+---Example of: removing a node---
+Tree before removal:
+┌──5 ┌──4
+│ └──nil
+3
+│ ┌──2
+└──1
+└──0
+Tree after removing root:
+┌──5
+4
+│ ┌──2
+└──1 └──0
+*/
+```
+
+### 요점 정리
+- 이진 탐색 트리는 정렬된 데이터를 담는데 아주 좋다.
+- 이진 탐색 트리의 요소들은 비교할 수 있는 형태이어야 한다. 일반적인 제약 조건을 사용하거나 비교를 수행하기 위해서 <code>closure</code>를 제공하여 이를 수행할 수 있다.
+- 삽입, 제거, 탐색 의 시간 복잡도는 __O(log n)__ 이다.
+- 트리가 균형이 맞지 않고 한 쪽으로 쏠린다면 __O(n)__ 으로 성능이 저하될 것이다.
